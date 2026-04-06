@@ -3,13 +3,21 @@ workflows:
     name: Builtin CRM - Android APK
     max_build_duration: 60
     environment:
-      flutter: 3.24.4
+      flutter: stable
       java: 17
     scripts:
       - name: Extract Flutter project from zip
         script: |
           unzip -o builtin_crm_flutter_source.zip -d extracted/
           cp -r extracted/builtin_crm_app/. .
+      - name: Patch Android Gradle Plugin version
+        script: |
+          sed -i 's/id "com.android.application" version "8.1.0"/id "com.android.application" version "8.3.0"/' android/settings.gradle
+          sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.7.0-bin.zip|' android/gradle/wrapper/gradle-wrapper.properties
+          echo "--- settings.gradle ---"
+          cat android/settings.gradle
+          echo "--- gradle-wrapper.properties ---"
+          cat android/gradle/wrapper/gradle-wrapper.properties
       - name: Get Flutter packages
         script: flutter pub get
       - name: Build APK
