@@ -3,7 +3,7 @@ workflows:
     name: Builtin CRM - Android APK
     max_build_duration: 60
     environment:
-      flutter: 3.24.3
+      flutter: stable
       java: 17
     scripts:
       - name: Extract Flutter project from zip
