@@ -14,16 +14,9 @@ workflows:
         script: |
           python3 -c "
           content = open('android/settings.gradle').read()
-          content = content.replace('version \"8.1.0\" apply false', 'version \"8.3.0\" apply false')
+          content = content.replace('version \"8.1.0\" apply false', 'version \"8.1.1\" apply false')
           open('android/settings.gradle', 'w').write(content)
-          print('AGP patched to 8.3.0')
-          "
-          python3 -c "
-          import re
-          content = open('android/gradle/wrapper/gradle-wrapper.properties').read()
-          content = re.sub(r'distributionUrl=.*', 'distributionUrl=https\\\\://services.gradle.org/distributions/gradle-8.7.0-bin.zip', content)
-          open('android/gradle/wrapper/gradle-wrapper.properties', 'w').write(content)
-          print('Gradle wrapper patched to 8.7.0')
+          print('AGP patched to 8.1.1:', open('android/settings.gradle').read().count('8.1.1'))
           "
           cat android/settings.gradle
       - name: Get Flutter packages
