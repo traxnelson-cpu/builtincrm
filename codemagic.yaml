@@ -9,7 +9,55 @@ workflows:
       - name: Extract Flutter project from zip
         script: |
           unzip -o builtin_crm_flutter_source.zip -d extracted/
-          cp -r extracted/builtin_crm_flutter_source/builtin_crm_app/. .
+          cp -r extracted/builtin_crm_app/. .
+      - name: Patch source files for Flutter stable compatibility
+        script: |
+          python3 - <<'PYEOF'
+          import os, re
+
+          # 1. Fix AGP version in android/settings.gradle (8.1.0 -> 8.1.1)
+          f = 'android/settings.gradle'
+          c = open(f).read()
+          c = c.replace('version "8.1.0" apply false', 'version "8.1.1" apply false')
+          open(f, 'w').write(c)
+          print('AGP patched:', '8.1.1' in open(f).read())
+
+          # 2. Replace image_gallery_saver_plus with saver_gallery in pubspec.yaml
+          f = 'pubspec.yaml'
+          c = open(f).read()
+          c = c.replace('image_gallery_saver_plus: ^3.0.5', 'saver_gallery: ^3.0.6')
+          open(f, 'w').write(c)
+          print('pubspec patched:', 'saver_gallery' in open(f).read())
+
+          # 3. Patch download_dialog.dart
+          f = 'lib/common/components/file_download_dialog/download_dialog.dart'
+          c = open(f).read()
+          c = c.replace(
+            "import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';",
+            "import 'package:saver_gallery/saver_gallery.dart';"
+          )
+          c = c.replace('ImageGallerySaverPlus.saveImage(', 'SaverGallery.saveImage(')
+          # Add androidRelativePath param after name param
+          c = re.sub(
+            r'(SaverGallery.saveImage([^)]+name:s*widget.fileName))',
+            lambda m: m.group(0)[:-1] + ',\n        androidRelativePath: "Pictures")',
+            c
+          )
+          # Fix result access: map-style -> object-style
+          c = c.replace(
+            "dynamic value = result['isSuccess'];
+      if (value.toString() == 'true') {",
+            "if (result.isSuccess) {"
+          )
+          c = c.replace(
+            "dynamic errorMessage = result['errorMessage'];
+        CustomSnackBar.error(errorList: [errorMessage]);",
+            "String errorMessage = result.errorMessage ?? 'Unknown error';
+        CustomSnackBar.error(errorList: [errorMessage]);"
+          )
+          open(f, 'w').write(c)
+          print('download_dialog patched:', 'saver_gallery' in open(f).read())
+          PYEOF
       - name: Get Flutter packages
         script: flutter pub get
       - name: Build APK
