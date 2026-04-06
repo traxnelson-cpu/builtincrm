@@ -6,6 +6,10 @@ workflows:
       flutter: 3.24.3
       java: 17
     scripts:
+      - name: Extract Flutter project from zip
+        script: |
+          unzip -o builtin_crm_flutter_source.zip -d extracted/
+          cp -r extracted/builtin_crm_app/. .
       - name: Get Flutter packages
         script: flutter pub get
       - name: Build APK
