@@ -9,20 +9,11 @@ workflows:
       - name: Extract Flutter project from zip
         script: |
           unzip -o builtin_crm_flutter_source.zip -d extracted/
-          cp -r extracted/builtin_crm_app/. .
-      - name: Patch Android Gradle Plugin version
-        script: |
-          python3 -c "
-          content = open('android/settings.gradle').read()
-          content = content.replace('version \"8.1.0\" apply false', 'version \"8.1.1\" apply false')
-          open('android/settings.gradle', 'w').write(content)
-          print('AGP patched to 8.1.1:', open('android/settings.gradle').read().count('8.1.1'))
-          "
-          cat android/settings.gradle
+          cp -r extracted/builtin_crm_flutter_source/builtin_crm_app/. .
       - name: Get Flutter packages
         script: flutter pub get
       - name: Build APK
-        script: flutter build apk --release --no-shrink --android-skip-build-dependency-validation
+        script: flutter build apk --release
     artifacts:
       - build/app/outputs/flutter-apk/app-release.apk
     publishing:
